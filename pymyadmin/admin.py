@@ -1,5 +1,6 @@
 import os
 import inspect
+import json
 
 from pymyadmin import modules
 from flask.ext.admin import Admin
@@ -69,4 +70,42 @@ def setup_admin_for(app):
         admin.add_view(viewinstance)
 
     admin.init_app(app)
+
+
+def get_or_create_database_config_for(username):
+    #XXX Need to set path to file depending on OS...
+    path_to = os.path.join('/home', username, '.config', '.pymyadmin')
+    file_path = os.path.join(path_to, 'config.cfg')
+
+    if os.path.isfile(file_path):
+        file_opened = open(file_path, 'r')
+        try:
+            config = json.loads(file_opened.read())
+        except ValueError:
+            config = create_empty_database_config()
+    else:
+        try:
+            file_opened = open(file_path, 'w')
+        except IOError:
+            os.makedirs(path_to)
+            print 'created dirs'
+            file_opened = open(file_path, 'w')
+        config = create_empty_database_config()
+        print 'created config'
+        file_opened.write(config)
+    
+    file_opened.close()
+    return config
+    
+
+def create_empty_database_config():
+    #XXX Need to set basic settings here...
+    empty_config = {}
+    config = json.dumps(empty_config, indent=4, separators=(',', ': '))
+    return config
+
+
+
+
+
 
